@@ -1,5 +1,8 @@
 # CLAUDE.md
 
+## 語言規範
+- 所有回覆、註解、commit 訊息、文件一律使用**繁體中文**
+
 ## Commit 規範
 - 每次 git commit 訊息結尾加上：
   Co-Authored-By: Barron <wewececetw@gmail.com>
