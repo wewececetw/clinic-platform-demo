@@ -6,6 +6,7 @@
 ## Commit 規範
 - 每次 git commit 訊息結尾加上：
   Co-Authored-By: Barron <wewececetw@gmail.com>
+- **不要**加上 Claude 的 Co-Authored-By，只留 Barron
 
 ## 專案概述
 - 醫療院所門診流程管理平台（Multi-tenant SaaS）
