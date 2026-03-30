@@ -29,6 +29,11 @@ public static class SeedData
     // Departments
     private static readonly Guid DeptGenId = Guid.Parse("50000000-0000-0000-0000-000000000001");
     private static readonly Guid DeptDenId = Guid.Parse("50000000-0000-0000-0000-000000000002");
+    private static readonly Guid DeptEntId = Guid.Parse("50000000-0000-0000-0000-000000000003");
+    private static readonly Guid DeptFamId = Guid.Parse("50000000-0000-0000-0000-000000000004");
+    private static readonly Guid DeptPedId = Guid.Parse("50000000-0000-0000-0000-000000000005");
+    private static readonly Guid DeptOphId = Guid.Parse("50000000-0000-0000-0000-000000000006");
+    private static readonly Guid DeptDerId = Guid.Parse("50000000-0000-0000-0000-000000000007");
 
     // Rooms
     private static readonly Guid Room1Id = Guid.Parse("60000000-0000-0000-0000-000000000001");
@@ -118,7 +123,12 @@ public static class SeedData
         // ── 示範科別 ──
         modelBuilder.Entity<Department>().HasData(
             new Department { Id = DeptGenId, ClinicId = ClinicId, Name = "一般內科", Code = "GEN", IsActive = true, SortOrder = 1 },
-            new Department { Id = DeptDenId, ClinicId = ClinicId, Name = "牙科", Code = "DEN", IsActive = true, SortOrder = 2 }
+            new Department { Id = DeptDenId, ClinicId = ClinicId, Name = "牙科", Code = "DEN", IsActive = true, SortOrder = 2 },
+            new Department { Id = DeptEntId, ClinicId = ClinicId, Name = "耳鼻喉科", Code = "ENT", IsActive = true, SortOrder = 3 },
+            new Department { Id = DeptFamId, ClinicId = ClinicId, Name = "家醫科", Code = "FAM", IsActive = true, SortOrder = 4 },
+            new Department { Id = DeptPedId, ClinicId = ClinicId, Name = "小兒科", Code = "PED", IsActive = true, SortOrder = 5 },
+            new Department { Id = DeptOphId, ClinicId = ClinicId, Name = "眼科", Code = "OPH", IsActive = true, SortOrder = 6 },
+            new Department { Id = DeptDerId, ClinicId = ClinicId, Name = "皮膚科", Code = "DER", IsActive = true, SortOrder = 7 }
         );
 
         // ── 示範診間 ──
@@ -215,10 +225,20 @@ public static class SeedData
         }
 
         // ── 示範科別 ──
-        if (!context.Departments.Any(d => d.ClinicId == ClinicId))
+        var existingDepts = context.Departments.Where(d => d.ClinicId == ClinicId).Select(d => d.Id).ToHashSet();
+        var seedDepts = new[]
         {
-            context.Departments.Add(new Department { Id = DeptGenId, ClinicId = ClinicId, Name = "一般內科", Code = "GEN", IsActive = true, SortOrder = 1 });
-            context.Departments.Add(new Department { Id = DeptDenId, ClinicId = ClinicId, Name = "牙科", Code = "DEN", IsActive = true, SortOrder = 2 });
+            new Department { Id = DeptGenId, ClinicId = ClinicId, Name = "一般內科", Code = "GEN", IsActive = true, SortOrder = 1 },
+            new Department { Id = DeptDenId, ClinicId = ClinicId, Name = "牙科", Code = "DEN", IsActive = true, SortOrder = 2 },
+            new Department { Id = DeptEntId, ClinicId = ClinicId, Name = "耳鼻喉科", Code = "ENT", IsActive = true, SortOrder = 3 },
+            new Department { Id = DeptFamId, ClinicId = ClinicId, Name = "家醫科", Code = "FAM", IsActive = true, SortOrder = 4 },
+            new Department { Id = DeptPedId, ClinicId = ClinicId, Name = "小兒科", Code = "PED", IsActive = true, SortOrder = 5 },
+            new Department { Id = DeptOphId, ClinicId = ClinicId, Name = "眼科", Code = "OPH", IsActive = true, SortOrder = 6 },
+            new Department { Id = DeptDerId, ClinicId = ClinicId, Name = "皮膚科", Code = "DER", IsActive = true, SortOrder = 7 },
+        };
+        foreach (var dept in seedDepts.Where(d => !existingDepts.Contains(d.Id)))
+        {
+            context.Departments.Add(dept);
             changed = true;
         }
 

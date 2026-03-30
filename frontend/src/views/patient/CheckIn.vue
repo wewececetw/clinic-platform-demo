@@ -7,7 +7,7 @@ import { sendOtp, verifyOtp, qrCheckIn, getVisitStatus, aiTriage } from '@/api/c
 const router = useRouter()
 const store = useVisitStore()
 
-const CLINIC_ID = import.meta.env.VITE_CLINIC_ID || 'demo-clinic-001'
+const CLINIC_ID = import.meta.env.VITE_CLINIC_ID || '10000000-0000-0000-0000-000000000001'
 
 // Tab 切換
 type TabName = 'ai' | 'phone' | 'qrcode' | 'status'

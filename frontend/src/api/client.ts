@@ -1,11 +1,15 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5160'
 const API = `${BASE_URL}/api`
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(endpoint: string, options: RequestInit = {}, timeoutMs = 3000): Promise<T> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
   const res = await fetch(`${API}${endpoint}`, {
     headers: { 'Content-Type': 'application/json' },
+    signal: controller.signal,
     ...options,
   })
+  clearTimeout(timeout)
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.error || res.statusText)
@@ -13,8 +17,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   return res.json()
 }
 
-function post<T>(endpoint: string, body: unknown): Promise<T> {
-  return request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) })
+function post<T>(endpoint: string, body: unknown, timeoutMs = 3000): Promise<T> {
+  return request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }, timeoutMs)
 }
 
 function get<T>(endpoint: string): Promise<T> {
@@ -81,7 +85,7 @@ export const startDispense = (prescriptionId: string) =>
 export const completeDispense = (prescriptionId: string) =>
   post(`/prescriptions/${prescriptionId}/complete-dispense`, {})
 
-// AI
+// AI（本地模型推理較慢，timeout 60 秒）
 export const aiTriage = (clinicId: string, symptoms: string) =>
   post<{ department: string; departmentId: string | null; priority: number; estimatedWaitMinutes: number; reasoning: string }>(
-    '/ai/triage', { clinicId, symptoms })
+    '/ai/triage', { clinicId, symptoms }, 60000)

@@ -6,7 +6,7 @@ public static class TriagePromptBuilder
     {
         var deptList = string.Join("\n", departments.Select(d => $"- {d.Name}（ID: {d.Id}）"));
 
-        return "/no_think\n" + $"""
+        return $"""
             你是醫療院所的智慧分流助手。根據病患症狀，從以下科別中選擇最適合的一個。
             你不是醫師，不做醫療診斷，只協助選擇科別。
 

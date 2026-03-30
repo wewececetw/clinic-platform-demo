@@ -33,10 +33,10 @@ public class AiService(
             Messages:
             [
                 new LlmMessage("system", systemPrompt),
-                new LlmMessage("user", userPrompt)
+                new LlmMessage("user", userPrompt),
             ],
             Temperature: 0.2f,
-            MaxTokens: 2048);
+            MaxTokens: 256);
 
         // 依優先序嘗試各 LLM provider
         var preferredProvider = configuration["AI:Provider"] ?? "Omlx";
