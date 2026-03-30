@@ -80,3 +80,8 @@ export const startDispense = (prescriptionId: string) =>
 
 export const completeDispense = (prescriptionId: string) =>
   post(`/prescriptions/${prescriptionId}/complete-dispense`, {})
+
+// AI
+export const aiTriage = (clinicId: string, symptoms: string) =>
+  post<{ department: string; departmentId: string | null; priority: number; estimatedWaitMinutes: number; reasoning: string }>(
+    '/ai/triage', { clinicId, symptoms })

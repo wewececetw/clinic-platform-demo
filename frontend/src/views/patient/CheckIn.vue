@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useVisitStore } from '@/stores/visit'
-import { sendOtp, verifyOtp, qrCheckIn, getVisitStatus } from '@/api/client'
+import { sendOtp, verifyOtp, qrCheckIn, getVisitStatus, aiTriage } from '@/api/client'
 
 const router = useRouter()
 const store = useVisitStore()
@@ -10,8 +10,8 @@ const store = useVisitStore()
 const CLINIC_ID = import.meta.env.VITE_CLINIC_ID || 'demo-clinic-001'
 
 // Tab 切換
-type TabName = 'phone' | 'qrcode' | 'status'
-const activeTab = ref<TabName>('phone')
+type TabName = 'ai' | 'phone' | 'qrcode' | 'status'
+const activeTab = ref<TabName>('ai')
 
 // 手機報到
 const phone = ref('')
@@ -66,6 +66,25 @@ async function handleQrCheckIn() {
   }
 }
 
+// AI 智慧分流
+const symptoms = ref('')
+const aiLoading = ref(false)
+const aiError = ref('')
+const aiResult = ref<{ department: string; departmentId: string | null; priority: number; estimatedWaitMinutes: number; reasoning: string } | null>(null)
+
+async function handleAiTriage() {
+  aiError.value = ''
+  aiResult.value = null
+  aiLoading.value = true
+  try {
+    aiResult.value = await aiTriage(CLINIC_ID, symptoms.value)
+  } catch (e: any) {
+    aiError.value = e.message || 'AI 分流失敗'
+  } finally {
+    aiLoading.value = false
+  }
+}
+
 // 查詢進度
 const queryVisitId = ref('')
 const queryLoading = ref(false)
@@ -93,6 +112,12 @@ async function handleQueryStatus() {
     <!-- Tab 切換 -->
     <div class="tabs">
       <button
+        :class="['tab-btn', { active: activeTab === 'ai' }]"
+        @click="activeTab = 'ai'"
+      >
+        AI 分流
+      </button>
+      <button
         :class="['tab-btn', { active: activeTab === 'phone' }]"
         @click="activeTab = 'phone'"
       >
@@ -110,6 +135,59 @@ async function handleQueryStatus() {
       >
         查詢進度
       </button>
+    </div>
+
+    <!-- AI 智慧分流 -->
+    <div v-if="activeTab === 'ai'" class="tab-content">
+      <div class="form-group">
+        <label for="symptoms">請描述您的症狀</label>
+        <textarea
+          id="symptoms"
+          v-model="symptoms"
+          rows="3"
+          placeholder="例如：頭痛三天、有點發燒、喉嚨痛..."
+          class="symptoms-input"
+        ></textarea>
+        <button
+          class="btn primary"
+          :disabled="!symptoms.trim() || aiLoading"
+          @click="handleAiTriage"
+        >
+          {{ aiLoading ? 'AI 分析中...' : 'AI 智慧分流' }}
+        </button>
+      </div>
+
+      <div v-if="aiLoading" class="ai-loading">
+        <div class="spinner"></div>
+        <p>AI 正在分析您的症狀...</p>
+      </div>
+
+      <div v-if="aiResult" class="ai-result">
+        <div class="ai-result-header">AI 建議</div>
+        <div class="ai-result-body">
+          <div class="ai-field">
+            <span class="ai-label">建議科別</span>
+            <span class="ai-value department">{{ aiResult.department }}</span>
+          </div>
+          <div class="ai-field">
+            <span class="ai-label">優先度</span>
+            <span class="ai-value" :class="'priority-' + aiResult.priority">
+              {{ ['一般', '優先', '緊急'][aiResult.priority] || '一般' }}
+            </span>
+          </div>
+          <div class="ai-field">
+            <span class="ai-label">預估等候</span>
+            <span class="ai-value">約 {{ aiResult.estimatedWaitMinutes }} 分鐘</span>
+          </div>
+          <div class="ai-reasoning">
+            <span class="ai-label">分析說明</span>
+            <p>{{ aiResult.reasoning }}</p>
+          </div>
+        </div>
+        <p class="ai-disclaimer">此為 AI 建議，僅供參考。實際科別由醫護人員確認。</p>
+      </div>
+
+      <p v-if="aiError" class="error">{{ aiError }}</p>
     </div>
 
     <!-- 手機報到 -->
@@ -323,6 +401,115 @@ async function handleQueryStatus() {
   padding: 8px 12px;
   background: #fce8e6;
   border-radius: 6px;
+}
+
+.symptoms-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s;
+}
+
+.symptoms-input:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.15);
+}
+
+.ai-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0;
+  gap: 12px;
+  color: #666;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #1a73e8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.ai-result {
+  margin-top: 16px;
+  border: 1px solid #c8e6c9;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ai-result-header {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-weight: 600;
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+.ai-result-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ai-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ai-label {
+  font-size: 13px;
+  color: #888;
+}
+
+.ai-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.ai-value.department {
+  color: #1a73e8;
+  font-size: 18px;
+}
+
+.priority-0 { color: #333; }
+.priority-1 { color: #f59e0b; }
+.priority-2 { color: #dc2626; font-weight: 700; }
+
+.ai-reasoning {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+}
+
+.ai-reasoning p {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.ai-disclaimer {
+  font-size: 12px;
+  color: #999;
+  padding: 8px 16px 12px;
+  text-align: center;
 }
 
 .status-card {
