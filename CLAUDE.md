@@ -8,6 +8,11 @@
   Co-Authored-By: Barron <wewececetw@gmail.com>
 - **不要**加上 Claude 的 Co-Authored-By，只留 Barron
 
+## 分支與部署策略
+- main 分支 → `origin`（wewececetw/hospital，私有）
+- demo 分支 → 同時推 `origin` 和 `public`（wewececetw/clinic-platform-demo，公開作品集）
+- 每次 demo 分支有變更推送時，**務必也推到 public remote**：`git push public demo:main`
+
 ## 專案概述
 - 醫療院所門診流程管理平台（Multi-tenant SaaS）
 - 後端：ASP.NET Core + EF Core + MySQL（Clean Architecture）
@@ -20,6 +25,11 @@
 - Workflow Engine 用有向圖建模（workflow_definitions → workflow_steps → workflow_transitions）
 - 候診佇列 Redis 為主、MySQL queue_entries 為持久化備份
 - AI 整合：OMLX（Ollama）本地優先、Groq 免費 tier 備援，統一 OpenAI 相容格式
+
+## 開發方法論
+- 使用 **Vibe Lens (SDD)** 進行 Spec-Driven Development
+- 流程：sdd_specify → sdd_analyze → sdd_plan → sdd_tasks → sdd_implement
+- 規格文件存放於 `.sdd/` 目錄
 
 ## AI 功能方向（main — 商業版）
 
@@ -49,6 +59,6 @@
 - 需要：Whisper 語音模型、Vision 模型整合
 
 ## 分支策略
-- **main**：完整商業版，含條件式 Workflow Engine、Spec 文件、全部 AI Phase
+- **main**：完整商業版，含條件式 Workflow Engine、SDD 規格文件、全部 AI Phase
 - **demo**：展示版，供 104 作品集，含 AI 分流 + Groq 備援（展示架構能力）
-- demo 移除：specs/ 設計文件、Workflow Engine 條件引擎
+- demo 移除：.sdd/ 設計文件、Workflow Engine 條件引擎
