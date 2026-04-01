@@ -7,6 +7,7 @@ using ClinicPlatform.Application.Features.Workflow;
 using ClinicPlatform.Infrastructure.Persistence;
 using ClinicPlatform.Infrastructure.Services;
 using ClinicPlatform.Infrastructure.Services.AI;
+using ClinicPlatform.Infrastructure.Services.AI.Executors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,15 @@ public static class DependencyInjection
         services.AddScoped<ILlmClient, OmlxLlmClient>();
         services.AddScoped<ILlmClient, GroqLlmClient>();
         services.AddScoped<IAiService, AiService>();
+
+        // AI 指令執行器
+        services.AddScoped<ICommandExecutor, CallNextExecutor>();
+        services.AddScoped<ICommandExecutor, SkipExecutor>();
+        services.AddScoped<ICommandExecutor, QueryQueueExecutor>();
+        services.AddScoped<ICommandExecutor, CompleteConsultExecutor>();
+        services.AddScoped<ICommandExecutor, QueryStatsExecutor>();
+        services.AddScoped<ICommandExecutor, CreatePrescriptionExecutor>();
+        services.AddScoped<CommandRouter>();
 
         return services;
     }

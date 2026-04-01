@@ -89,3 +89,11 @@ export const completeDispense = (prescriptionId: string) =>
 export const aiTriage = (clinicId: string, symptoms: string) =>
   post<{ department: string; departmentId: string | null; priority: number; estimatedWaitMinutes: number; reasoning: string }>(
     '/ai/triage', { clinicId, symptoms }, 60000)
+
+export const aiCommand = (clinicId: string, userId: string, role: string, command: string) =>
+  post<{ action: string; params: Record<string, unknown> | null; result: string; message: string }>(
+    '/ai/command', { clinicId, userId, role, command }, 30000)
+
+export const aiCommandExecute = (clinicId: string, userId: string, role: string, action: string, params: Record<string, unknown> | null) =>
+  post<{ success: boolean; message: string; data: Record<string, unknown> | null }>(
+    '/ai/command/execute', { clinicId, userId, role, action, params }, 10000)

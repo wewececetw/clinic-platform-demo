@@ -16,3 +16,10 @@ public record CommandResponse(
     Dictionary<string, object>? Params,
     string Result,
     string Message);
+
+public record ExecuteCommandRequest(
+    Guid ClinicId,
+    Guid UserId,
+    string Role,
+    string Action,
+    Dictionary<string, object>? Params);

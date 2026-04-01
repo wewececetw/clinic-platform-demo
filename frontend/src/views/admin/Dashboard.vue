@@ -5,6 +5,17 @@
       <p class="subtitle">開發中</p>
     </header>
 
+    <!-- AI 指令 -->
+    <section class="card">
+      <h2>AI 指令</h2>
+      <CommandInput
+        :clinic-id="CLINIC_ID"
+        :user-id="USER_ID"
+        role="Admin"
+        placeholder="輸入指令：今天看了幾個病人、還有幾位候診..."
+      />
+    </section>
+
     <section class="card">
       <h2>功能清單</h2>
       <ul class="feature-list">
@@ -22,6 +33,11 @@
 </template>
 
 <script setup lang="ts">
+import CommandInput from '@/components/CommandInput.vue'
+
+const CLINIC_ID = '10000000-0000-0000-0000-000000000001'
+const USER_ID = '20000000-0000-0000-0000-000000000003'
+
 const features = [
   { name: '流程管理', description: '自訂門診流程步驟與轉場規則', icon: '\u{1F504}' },
   { name: '叫號規則', description: '設定叫號邏輯與優先度權重', icon: '\u{1F4E2}' },

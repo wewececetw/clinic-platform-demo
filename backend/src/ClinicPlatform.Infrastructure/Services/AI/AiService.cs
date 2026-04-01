@@ -66,10 +66,86 @@ public class AiService(
         return Result<TriageResponse>.Fail("AI 分流服務暫時無法使用，請手動選擇科別");
     }
 
-    public Task<Result<CommandResponse>> CommandAsync(CommandRequest request)
+    public async Task<Result<CommandResponse>> CommandAsync(CommandRequest request)
     {
-        // Phase 2 實作
-        return Task.FromResult(Result<CommandResponse>.Fail("自然語言指令功能開發中"));
+        var systemPrompt = CommandPromptBuilder.BuildSystemPrompt(request.Role);
+        var userPrompt = CommandPromptBuilder.BuildUserPrompt(request.Command);
+
+        var llmRequest = new LlmRequest(
+            Model: null!,
+            Messages:
+            [
+                new LlmMessage("system", systemPrompt),
+                new LlmMessage("user", userPrompt),
+            ],
+            Temperature: 0.1f,
+            MaxTokens: 256);
+
+        var preferredProvider = configuration["AI:Provider"] ?? "Omlx";
+        var orderedClients = llmClients
+            .OrderByDescending(c => c.ProviderName == preferredProvider)
+            .ToList();
+
+        foreach (var client in orderedClients)
+        {
+            try
+            {
+                logger.LogInformation("嘗試使用 {Provider} 進行指令解析", client.ProviderName);
+                var response = await client.ChatAsync(llmRequest);
+                logger.LogDebug("指令 LLM 原始回應：{Content}", response.Content[..Math.Min(500, response.Content.Length)]);
+                var command = ParseCommandResponse(response.Content);
+                if (command is not null)
+                    return Result<CommandResponse>.Ok(command);
+
+                logger.LogWarning("{Provider} 指令回應無法解析", client.ProviderName);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "{Provider} 指令呼叫失敗", client.ProviderName);
+            }
+        }
+
+        return Result<CommandResponse>.Fail("指令解析失敗，請換個說法再試一次");
+    }
+
+    private static CommandResponse? ParseCommandResponse(string content)
+    {
+        try
+        {
+            var json = ExtractJson(content, "action");
+            if (json is null) return null;
+
+            var parsed = JsonSerializer.Deserialize<JsonElement>(json);
+
+            var action = parsed.GetProperty("action").GetString() ?? "unknown";
+            var message = parsed.TryGetProperty("message", out var m) ? m.GetString() ?? "" : "";
+
+            Dictionary<string, object>? parameters = null;
+            if (parsed.TryGetProperty("params", out var p) && p.ValueKind == JsonValueKind.Object)
+            {
+                parameters = new Dictionary<string, object>();
+                foreach (var prop in p.EnumerateObject())
+                {
+                    parameters[prop.Name] = prop.Value.ValueKind switch
+                    {
+                        JsonValueKind.String => prop.Value.GetString()!,
+                        JsonValueKind.Number => prop.Value.GetDouble(),
+                        JsonValueKind.True => true,
+                        JsonValueKind.False => false,
+                        _ => prop.Value.ToString()
+                    };
+                }
+            }
+
+            var needsConfirm = parsed.TryGetProperty("needsConfirm", out var nc) && nc.GetBoolean();
+            var result = needsConfirm ? "confirm" : "done";
+
+            return new CommandResponse(action, parameters, result, message);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static TriageResponse? ParseTriageResponse(string content, List<DepartmentInfo> departments)
@@ -77,7 +153,7 @@ public class AiService(
         try
         {
             // 從回應中提取包含 "department" 的 JSON（跳過 thinking process）
-            var json = ExtractJson(content);
+            var json = ExtractJson(content, "department");
             if (json is null) return null;
 
             var parsed = JsonSerializer.Deserialize<JsonElement>(json);
@@ -109,19 +185,16 @@ public class AiService(
     }
 
     /// <summary>
-    /// 從 LLM 回應中提取含 "department" 的 JSON 物件
-    /// 處理 Qwen thinking process 等額外文字
+    /// 從 LLM 回應中提取含指定 key 的 JSON 物件
     /// </summary>
-    private static string? ExtractJson(string content)
+    private static string? ExtractJson(string content, string requiredKey = "department")
     {
-        // 從後往前找，因為 thinking 內容在前面
         var idx = content.Length - 1;
         while (idx >= 0)
         {
             var end = content.LastIndexOf('}', idx);
             if (end < 0) break;
 
-            // 找到對應的 {
             var depth = 0;
             for (var i = end; i >= 0; i--)
             {
@@ -131,7 +204,7 @@ public class AiService(
                 if (depth == 0)
                 {
                     var candidate = content[i..(end + 1)];
-                    if (candidate.Contains("department"))
+                    if (candidate.Contains(requiredKey))
                         return candidate;
                     break;
                 }

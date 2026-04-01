@@ -1,0 +1,36 @@
+{
+  "version": "0.1.0",
+  "created_at": "2026-03-31T13:44:43.366898+00:00",
+  "features": {
+    "_project": {
+      "name": "_project",
+      "created_at": "2026-03-31T13:44:43.367659+00:00",
+      "phases": {
+        "constitution": {
+          "completed_at": "2026-03-31T13:44:43.367662+00:00"
+        }
+      }
+    },
+    "natural-language-command": {
+      "name": "natural-language-command",
+      "created_at": "2026-03-31T13:45:13.192534+00:00",
+      "phases": {
+        "specify": {
+          "completed_at": "2026-03-31T13:45:13.192539+00:00"
+        },
+        "clarify": {
+          "completed_at": "2026-03-31T13:49:02.512764+00:00"
+        },
+        "plan": {
+          "completed_at": "2026-03-31T13:49:19.887509+00:00"
+        },
+        "tasks": {
+          "completed_at": "2026-03-31T13:49:29.016547+00:00"
+        },
+        "analyze": {
+          "completed_at": "2026-03-31T13:49:47.776238+00:00"
+        }
+      }
+    }
+  }
+}

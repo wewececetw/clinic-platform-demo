@@ -4,6 +4,18 @@
       <h1>醫師看診</h1>
     </header>
 
+    <!-- AI 指令 -->
+    <section class="card">
+      <h2>AI 指令</h2>
+      <CommandInput
+        :clinic-id="CLINIC_ID"
+        :user-id="USER_ID"
+        role="Doctor"
+        placeholder="輸入指令：完成看診、需要拿藥、還有幾位候診..."
+        @executed="loadCurrentPatient"
+      />
+    </section>
+
     <!-- 目前叫到的病患 -->
     <section class="current-patient card">
       <h2>目前病患</h2>
@@ -85,8 +97,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getQueue, startConsult, completeConsult, createPrescription } from '@/api/client'
+import CommandInput from '@/components/CommandInput.vue'
 
 const CLINIC_ID = '10000000-0000-0000-0000-000000000001'
+const USER_ID = '20000000-0000-0000-0000-000000000002'
 
 interface QueueItem {
   visitId: string

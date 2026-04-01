@@ -29,7 +29,7 @@
 ## 開發方法論
 - 使用 **Vibe Lens (SDD)** 進行 Spec-Driven Development
 - 流程：sdd_specify → sdd_analyze → sdd_plan → sdd_tasks → sdd_implement
-- 規格文件存放於 `.sdd/` 目錄
+- 規格文件存放於 `.vibe-lens/` 目錄
 
 ## AI 功能方向（main — 商業版）
 
@@ -61,4 +61,4 @@
 ## 分支策略
 - **main**：完整商業版，含條件式 Workflow Engine、SDD 規格文件、全部 AI Phase
 - **demo**：展示版，供 104 作品集，含 AI 分流 + Groq 備援（展示架構能力）
-- demo 移除：.sdd/ 設計文件、Workflow Engine 條件引擎
+- demo 移除：.vibe-lens/ 設計文件、Workflow Engine 條件引擎

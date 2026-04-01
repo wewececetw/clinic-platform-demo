@@ -28,6 +28,18 @@
 
       <!-- 右側 -->
       <aside class="action-panel">
+        <!-- AI 指令 -->
+        <section class="action-card">
+          <h2>AI 指令</h2>
+          <CommandInput
+            :clinic-id="CLINIC_ID"
+            :user-id="USER_ID"
+            role="Nurse"
+            placeholder="輸入指令：叫下一位、3號過號、還有幾位候診..."
+            @executed="loadQueue"
+          />
+        </section>
+
         <!-- 叫下一號 -->
         <section class="action-card">
           <h2>叫號</h2>
@@ -61,8 +73,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getQueue, callNext, skipVisit, manualCheckIn } from '@/api/client'
+import CommandInput from '@/components/CommandInput.vue'
 
 const CLINIC_ID = '10000000-0000-0000-0000-000000000001'
+const USER_ID = '20000000-0000-0000-0000-000000000001'
 
 const queue = ref<Array<{ visitId: string; queueNumber: number; patientName: string; priority: number; status: string }>>([])
 const loading = ref(true)

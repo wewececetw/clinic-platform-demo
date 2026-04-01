@@ -39,6 +39,16 @@ public static class SeedData
     private static readonly Guid Room1Id = Guid.Parse("60000000-0000-0000-0000-000000000001");
     private static readonly Guid Room2Id = Guid.Parse("60000000-0000-0000-0000-000000000002");
 
+    // Medications
+    private static readonly Guid Med01Id = Guid.Parse("70000000-0000-0000-0000-000000000001");
+    private static readonly Guid Med02Id = Guid.Parse("70000000-0000-0000-0000-000000000002");
+    private static readonly Guid Med03Id = Guid.Parse("70000000-0000-0000-0000-000000000003");
+    private static readonly Guid Med04Id = Guid.Parse("70000000-0000-0000-0000-000000000004");
+    private static readonly Guid Med05Id = Guid.Parse("70000000-0000-0000-0000-000000000005");
+    private static readonly Guid Med06Id = Guid.Parse("70000000-0000-0000-0000-000000000006");
+    private static readonly Guid Med07Id = Guid.Parse("70000000-0000-0000-0000-000000000007");
+    private static readonly Guid Med08Id = Guid.Parse("70000000-0000-0000-0000-000000000008");
+
     private static readonly DateTime SeedTime = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     /// <summary>
@@ -135,6 +145,18 @@ public static class SeedData
         modelBuilder.Entity<Room>().HasData(
             new Room { Id = Room1Id, ClinicId = ClinicId, DepartmentId = DeptGenId, Name = "第一診", RoomType = RoomType.Consulting, IsActive = true, SortOrder = 1 },
             new Room { Id = Room2Id, ClinicId = ClinicId, DepartmentId = DeptGenId, Name = "第二診", RoomType = RoomType.Consulting, IsActive = true, SortOrder = 2 }
+        );
+
+        // ── 示範藥品 ──
+        modelBuilder.Entity<Medication>().HasData(
+            MakeMed(Med01Id, "ACE01", "普拿疼", "錠", "500mg"),
+            MakeMed(Med02Id, "ACE02", "阿斯匹靈", "錠", "100mg"),
+            MakeMed(Med03Id, "AMO01", "安莫西林", "膠囊", "500mg"),
+            MakeMed(Med04Id, "IBU01", "布洛芬", "錠", "400mg"),
+            MakeMed(Med05Id, "MET01", "胃乳片", "錠", "250mg"),
+            MakeMed(Med06Id, "CET01", "驅特異", "錠", "10mg"),
+            MakeMed(Med07Id, "DEX01", "右美沙芬", "糖漿", "15mg/5ml"),
+            MakeMed(Med08Id, "LOR01", "樂雷塔定", "錠", "10mg")
         );
     }
 
@@ -250,6 +272,20 @@ public static class SeedData
             changed = true;
         }
 
+        // ── 示範藥品 ──
+        if (!context.Medications.Any(m => m.ClinicId == ClinicId))
+        {
+            context.Medications.Add(MakeMed(Med01Id, "ACE01", "普拿疼", "錠", "500mg"));
+            context.Medications.Add(MakeMed(Med02Id, "ACE02", "阿斯匹靈", "錠", "100mg"));
+            context.Medications.Add(MakeMed(Med03Id, "AMO01", "安莫西林", "膠囊", "500mg"));
+            context.Medications.Add(MakeMed(Med04Id, "IBU01", "布洛芬", "錠", "400mg"));
+            context.Medications.Add(MakeMed(Med05Id, "MET01", "胃乳片", "錠", "250mg"));
+            context.Medications.Add(MakeMed(Med06Id, "CET01", "驅特異", "錠", "10mg"));
+            context.Medications.Add(MakeMed(Med07Id, "DEX01", "右美沙芬", "糖漿", "15mg/5ml"));
+            context.Medications.Add(MakeMed(Med08Id, "LOR01", "樂雷塔定", "錠", "10mg"));
+            changed = true;
+        }
+
         if (changed)
         {
             await context.SaveChangesAsync();
@@ -271,6 +307,21 @@ public static class SeedData
             RequiredRole = requiredRole,
             AutoAdvance = autoAdvance,
             IsSkippable = false,
+            CreatedAt = SeedTime
+        };
+    }
+
+    private static Medication MakeMed(Guid id, string code, string name, string unit, string defaultDosage)
+    {
+        return new Medication
+        {
+            Id = id,
+            ClinicId = ClinicId,
+            Code = code,
+            Name = name,
+            Unit = unit,
+            DefaultDosage = defaultDosage,
+            IsActive = true,
             CreatedAt = SeedTime
         };
     }
