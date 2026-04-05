@@ -1,5 +1,6 @@
 # Claude Code / Spec Kit
 .claude/settings.local.json
+.claude/launch.json
 
 # .NET
 bin/
