@@ -32,3 +32,6 @@ dist/
 # Docker volumes
 mysql_data/
 redis_data/
+
+# Task Router (symlink to ~/.task-router-repo)
+scripts/call-omlx.sh
