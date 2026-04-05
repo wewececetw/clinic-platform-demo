@@ -66,11 +66,20 @@ function statusLabel(status: string): string {
   return map[status] || status
 }
 
+// Demo mock 資料
+const MOCK_PHARMACY: PharmacyItem[] = [
+  { prescriptionId: 'rx1', visitId: 'v1', patientName: '王大明', status: 'Dispensing' },
+  { prescriptionId: 'rx2', visitId: 'v2', patientName: '李小華', status: 'Pending' },
+  { prescriptionId: 'rx3', visitId: 'v3', patientName: '張美玲', status: 'Pending' },
+  { prescriptionId: 'rx4', visitId: 'v6', patientName: '黃志豪', status: 'Completed' },
+]
+
 async function loadQueue() {
   try {
-    queue.value = await getPharmacyQueue()
+    const data = await getPharmacyQueue()
+    queue.value = data.length > 0 ? data : MOCK_PHARMACY
   } catch (e: any) {
-    console.error('載入配藥佇列失敗', e)
+    queue.value = MOCK_PHARMACY
   } finally {
     loading.value = false
   }
