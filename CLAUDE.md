@@ -27,9 +27,10 @@
 - AI 整合：OMLX（Ollama）本地優先、Groq 免費 tier 備援，統一 OpenAI 相容格式
 
 ## 開發方法論
-- 使用 **Vibe Lens (SDD)** 進行 Spec-Driven Development
-- 流程：sdd_specify → sdd_analyze → sdd_plan → sdd_tasks → sdd_implement
-- 規格文件存放於 `.vibe-lens/` 目錄
+- 使用 **Spec Kit** 進行 Spec-Driven Development
+- 流程：/speckit.constitution → /speckit.specify → /speckit.clarify → /speckit.plan → /speckit.tasks → /speckit.implement
+- 選用增強：/speckit.analyze（跨產出物一致性）、/speckit.checklist（品質檢查）
+- 規格文件存放於 `specs/` 目錄
 
 ## AI 功能方向（main — 商業版）
 
@@ -61,4 +62,4 @@
 ## 分支策略
 - **main**：完整商業版，含條件式 Workflow Engine、SDD 規格文件、全部 AI Phase
 - **demo**：展示版，供 104 作品集，含 AI 分流 + Groq 備援（展示架構能力）
-- demo 移除：.vibe-lens/ 設計文件、Workflow Engine 條件引擎
+- demo 移除：specs/ 設計文件、Workflow Engine 條件引擎

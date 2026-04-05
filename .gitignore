@@ -1,3 +1,6 @@
+# Claude Code / Spec Kit
+.claude/settings.local.json
+
 # .NET
 bin/
 obj/
