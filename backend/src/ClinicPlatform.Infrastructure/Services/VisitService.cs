@@ -1,4 +1,5 @@
 using ClinicPlatform.Application.Common;
+using ClinicPlatform.Application.Features.Notifications;
 using ClinicPlatform.Application.Features.Visit;
 using ClinicPlatform.Application.Features.Workflow;
 using ClinicPlatform.Domain.Entities;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicPlatform.Infrastructure.Services;
 
-public class VisitService(ClinicDbContext db, IWorkflowEngine workflowEngine) : IVisitService
+public class VisitService(ClinicDbContext db, IWorkflowEngine workflowEngine, INotificationPublisher notifier) : IVisitService
 {
     public async Task<Result<VisitStatusDto>> GetStatusAsync(Guid clinicId, Guid visitId)
     {
@@ -94,6 +95,11 @@ public class VisitService(ClinicDbContext db, IWorkflowEngine workflowEngine) : 
         db.VisitEvents.Add(visitEvent);
 
         await db.SaveChangesAsync();
+
+        // 推播：step 前進 + 佇列變動（Consulting → InConsult）
+        await notifier.PublishVisitStepChangedAsync(visit.Id, consultingStep.StepCode, consultingStep.DisplayName);
+        await notifier.PublishQueueUpdatedAsync(request.ClinicId, "Consulting", "consult_started");
+
         return Result.Ok();
     }
 

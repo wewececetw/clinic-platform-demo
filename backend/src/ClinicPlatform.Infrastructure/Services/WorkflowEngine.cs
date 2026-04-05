@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ClinicPlatform.Application.Common;
+using ClinicPlatform.Application.Features.Notifications;
 using ClinicPlatform.Application.Features.Workflow;
 using ClinicPlatform.Domain.Entities;
 using ClinicPlatform.Domain.Enums;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicPlatform.Infrastructure.Services;
 
-public class WorkflowEngine(ClinicDbContext db) : IWorkflowEngine
+public class WorkflowEngine(ClinicDbContext db, INotificationPublisher notifier) : IWorkflowEngine
 {
     public async Task<Result> AdvanceAsync(Guid clinicId, Guid visitId, Guid? triggeredByUserId)
     {
@@ -76,6 +77,10 @@ public class WorkflowEngine(ClinicDbContext db) : IWorkflowEngine
         });
 
         await db.SaveChangesAsync();
+
+        // 推播 step 推進事件 + 診所佇列變動
+        await notifier.PublishVisitStepChangedAsync(visitId, matched.ToStep.StepCode, matched.ToStep.DisplayName);
+        await notifier.PublishQueueUpdatedAsync(clinicId, "Consulting", "step_advanced");
 
         // 新步驟若 AutoAdvance，遞迴推進
         if (matched.ToStep.AutoAdvance)

@@ -1,5 +1,6 @@
 using ClinicPlatform.Application.Common;
 using ClinicPlatform.Application.Features.CheckIn;
+using ClinicPlatform.Application.Features.Notifications;
 using ClinicPlatform.Domain.Entities;
 using ClinicPlatform.Domain.Enums;
 using ClinicPlatform.Infrastructure.Persistence;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicPlatform.Infrastructure.Services;
 
-public class CheckInService(ClinicDbContext db) : ICheckInService
+public class CheckInService(ClinicDbContext db, INotificationPublisher notifier) : ICheckInService
 {
     public async Task<Result> SendOtpAsync(SendOtpRequest request)
     {
@@ -48,6 +49,7 @@ public class CheckInService(ClinicDbContext db) : ICheckInService
         var (visit, queueEntry) = await CreateVisitAsync(patient, CheckinMethod.Otp);
 
         await db.SaveChangesAsync();
+        await notifier.PublishQueueUpdatedAsync(request.ClinicId, queueEntry.QueueType.ToString(), "checkedin");
 
         return Result<CheckInResponse>.Ok(new CheckInResponse(
             visit.Id, queueEntry.QueueNumber, visit.CurrentStep!.StepCode));
@@ -70,6 +72,7 @@ public class CheckInService(ClinicDbContext db) : ICheckInService
             appointment.Patient, CheckinMethod.QrCode, appointment.Id, appointment.DoctorId);
 
         await db.SaveChangesAsync();
+        await notifier.PublishQueueUpdatedAsync(request.ClinicId, queueEntry.QueueType.ToString(), "checkedin");
 
         return Result<CheckInResponse>.Ok(new CheckInResponse(
             visit.Id, queueEntry.QueueNumber, visit.CurrentStep!.StepCode));
@@ -101,6 +104,7 @@ public class CheckInService(ClinicDbContext db) : ICheckInService
             patient, CheckinMethod.Manual, doctorId: request.DoctorId);
 
         await db.SaveChangesAsync();
+        await notifier.PublishQueueUpdatedAsync(request.ClinicId, queueEntry.QueueType.ToString(), "checkedin");
 
         return Result<CheckInResponse>.Ok(new CheckInResponse(
             visit.Id, queueEntry.QueueNumber, visit.CurrentStep!.StepCode));

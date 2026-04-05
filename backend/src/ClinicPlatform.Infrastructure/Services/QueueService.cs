@@ -1,4 +1,5 @@
 using ClinicPlatform.Application.Common;
+using ClinicPlatform.Application.Features.Notifications;
 using ClinicPlatform.Application.Features.Queue;
 using ClinicPlatform.Domain.Entities;
 using ClinicPlatform.Domain.Enums;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicPlatform.Infrastructure.Services;
 
-public class QueueService(ClinicDbContext db) : IQueueService
+public class QueueService(ClinicDbContext db, INotificationPublisher notifier) : IQueueService
 {
     public async Task<Result<List<QueueEntryDto>>> GetQueueAsync(Guid clinicId, string queueType)
     {
@@ -114,6 +115,24 @@ public class QueueService(ClinicDbContext db) : IQueueService
 
         await db.SaveChangesAsync();
 
+        // 推播：佇列變動 + 病患被叫號 + visit step 前進
+        await notifier.PublishQueueUpdatedAsync(request.ClinicId, request.QueueType, "called");
+        if (calledStep is not null)
+        {
+            await notifier.PublishVisitStepChangedAsync(visit.Id, calledStep.StepCode, calledStep.DisplayName);
+        }
+        if (visit.RoomId.HasValue)
+        {
+            var roomName = await db.Rooms
+                .Where(r => r.Id == visit.RoomId.Value)
+                .Select(r => r.Name)
+                .FirstOrDefaultAsync();
+            if (!string.IsNullOrEmpty(roomName))
+            {
+                await notifier.PublishPatientCalledAsync(visit.Id, roomName);
+            }
+        }
+
         var dto = new QueueEntryDto(
             entry.VisitId,
             entry.QueueNumber,
@@ -140,6 +159,8 @@ public class QueueService(ClinicDbContext db) : IQueueService
         entry.SkippedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
+
+        await notifier.PublishQueueUpdatedAsync(clinicId, entry.QueueType.ToString(), "skipped");
 
         return Result.Ok();
     }
