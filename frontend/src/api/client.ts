@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5160'
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5160'
 const API = `${BASE_URL}/api`
 
 async function request<T>(endpoint: string, options: RequestInit = {}, timeoutMs = 3000): Promise<T> {

@@ -12,6 +12,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uclinic_user", "-pclinic_pass_2024"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -20,6 +25,45 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: clinic-backend
+    ports:
+      - "5160:5160"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=mysql;Port=3306;Database=clinic_platform;User=clinic_user;Password=clinic_pass_2024;CharSet=utf8mb4;"
+      Redis__ConnectionString: "redis:6379"
+      AI__Provider: "Omlx"
+      AI__Omlx__Endpoint: "http://host.docker.internal:9000/v1/chat/completions"
+      AI__Omlx__ApiKey: "${OMLX_API_KEY}"
+      AI__Omlx__Model: "Qwen2.5-7B-Instruct-4bit"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+    container_name: clinic-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
   mysql_data:

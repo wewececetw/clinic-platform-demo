@@ -1,7 +1,7 @@
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
 import { ref } from 'vue'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5160'
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5160'
 
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'reconnecting'
 

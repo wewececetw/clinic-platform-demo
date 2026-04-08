@@ -10,11 +10,15 @@ builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<INotificationPublisher, SignalRNotificationPublisher>();
 
+// CORS origins 可透過環境變數 CORS__Origins（逗號分隔）覆寫
+var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? ["http://localhost:5173", "http://localhost:4173", "http://localhost:3000"];
+
 builder.Services.AddCors(options =>
 {
     // SignalR 需要 AllowCredentials，因此必須指定明確 origin（不能用 AllowAnyOrigin）
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("http://localhost:5173", "http://localhost:4173")
+        policy.WithOrigins(corsOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials());
