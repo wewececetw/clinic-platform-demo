@@ -51,6 +51,7 @@ interface PharmacyItem {
   status: string
 }
 
+const CLINIC_ID = '10000000-0000-0000-0000-000000000001'
 const queue = ref<PharmacyItem[]>([])
 const loading = ref(true)
 const processing = ref<string | null>(null)
@@ -68,7 +69,7 @@ function statusLabel(status: string): string {
 
 async function loadQueue() {
   try {
-    queue.value = await getPharmacyQueue()
+    queue.value = await getPharmacyQueue(CLINIC_ID)
   } catch (e: any) {
     console.error('載入配藥佇列失敗', e)
   } finally {
@@ -79,7 +80,7 @@ async function loadQueue() {
 async function handleStartDispense(prescriptionId: string) {
   processing.value = prescriptionId
   try {
-    await startDispense(prescriptionId)
+    await startDispense(CLINIC_ID, prescriptionId)
     await loadQueue()
   } catch (e: any) {
     alert(`開始配藥失敗：${e.message}`)
@@ -91,7 +92,7 @@ async function handleStartDispense(prescriptionId: string) {
 async function handleCompleteDispense(prescriptionId: string) {
   processing.value = prescriptionId
   try {
-    await completeDispense(prescriptionId)
+    await completeDispense(CLINIC_ID, prescriptionId)
     await loadQueue()
   } catch (e: any) {
     alert(`配藥完成失敗：${e.message}`)

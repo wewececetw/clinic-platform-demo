@@ -144,7 +144,7 @@ async function handleStartConsult() {
   if (!currentPatient.value) return
   startingConsult.value = true
   try {
-    await startConsult(currentPatient.value.visitId)
+    await startConsult(CLINIC_ID, currentPatient.value.visitId)
     consulting.value = true
   } catch (e: any) {
     alert(`開始看診失敗：${e.message}`)
@@ -157,7 +157,7 @@ async function handleCompleteConsult() {
   if (!currentPatient.value) return
   completing.value = true
   try {
-    await completeConsult(currentPatient.value.visitId, needsMedication.value)
+    await completeConsult(CLINIC_ID, currentPatient.value.visitId, needsMedication.value)
     consulting.value = false
     if (needsMedication.value) {
       showPrescription.value = true
@@ -176,7 +176,7 @@ async function handleCreatePrescription() {
   if (!currentPatient.value) return
   prescribing.value = true
   try {
-    await createPrescription(currentPatient.value.visitId, [
+    await createPrescription(CLINIC_ID, currentPatient.value.visitId, [
       {
         medicationId: rxForm.value.medicationName,
         dosage: rxForm.value.dosage,

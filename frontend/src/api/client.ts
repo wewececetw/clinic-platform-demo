@@ -14,7 +14,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}, timeoutMs
     const err = await res.json().catch(() => ({}))
     throw new Error(err.error || res.statusText)
   }
-  return res.json()
+  // 允許空 body（如 200 OK 但無內容）
+  const text = await res.text()
+  return (text ? JSON.parse(text) : null) as T
 }
 
 function post<T>(endpoint: string, body: unknown, timeoutMs = 3000): Promise<T> {
@@ -69,26 +71,27 @@ export const skipVisit = (clinicId: string, visitId: string) =>
   post(`/visits/${visitId}/skip`, { clinicId })
 
 // 醫師
-export const startConsult = (visitId: string) =>
-  post(`/visits/${visitId}/start-consult`, {})
+export const startConsult = (clinicId: string, visitId: string) =>
+  post(`/doctor/visits/${visitId}/start-consult?clinicId=${clinicId}`, {})
 
-export const completeConsult = (visitId: string, needsMedication: boolean) =>
-  post(`/visits/${visitId}/complete-consult`, { needsMedication })
+export const completeConsult = (clinicId: string, visitId: string, needsMedication: boolean) =>
+  post(`/doctor/visits/${visitId}/complete-consult`, { clinicId, visitId, needsMedication })
 
-export const createPrescription = (visitId: string, items: Array<{
+export const createPrescription = (clinicId: string, visitId: string, items: Array<{
   medicationId: string; dosage: string; frequency: string; durationDays: number; quantity: number
 }>, notes?: string) =>
-  post(`/visits/${visitId}/prescriptions`, { items, notes })
+  post(`/doctor/visits/${visitId}/prescriptions`, { clinicId, visitId, items, notes })
 
 // 藥劑師
-export const getPharmacyQueue = () =>
-  get<Array<{ prescriptionId: string; visitId: string; patientName: string; status: string }>>('/pharmacy/queue')
+export const getPharmacyQueue = (clinicId: string) =>
+  get<Array<{ prescriptionId: string; visitId: string; patientName: string; status: string }>>(
+    `/pharmacy/queue?clinicId=${clinicId}`)
 
-export const startDispense = (prescriptionId: string) =>
-  post(`/prescriptions/${prescriptionId}/start-dispense`, {})
+export const startDispense = (clinicId: string, prescriptionId: string) =>
+  post(`/pharmacy/prescriptions/${prescriptionId}/start-dispense?clinicId=${clinicId}`, {})
 
-export const completeDispense = (prescriptionId: string) =>
-  post(`/prescriptions/${prescriptionId}/complete-dispense`, {})
+export const completeDispense = (clinicId: string, prescriptionId: string) =>
+  post(`/pharmacy/prescriptions/${prescriptionId}/complete-dispense?clinicId=${clinicId}`, {})
 
 // AI（本地模型推理較慢，timeout 60 秒）
 export const aiTriage = (clinicId: string, symptoms: string) =>
