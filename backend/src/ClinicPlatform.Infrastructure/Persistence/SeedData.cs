@@ -12,6 +12,9 @@ public static class SeedData
     private static readonly Guid DoctorRoleId = Guid.Parse("00000000-0000-0000-0000-000000000003");
     private static readonly Guid PharmacistRoleId = Guid.Parse("00000000-0000-0000-0000-000000000004");
 
+    // Demo 用 user（對應 Controller 寫死的 CurrentUserId）
+    private static readonly Guid DemoUserId = Guid.Parse("99999999-0000-0000-0000-000000000001");
+
     private static readonly Guid ClinicId = Guid.Parse("10000000-0000-0000-0000-000000000001");
     private static readonly Guid WorkflowId = Guid.Parse("20000000-0000-0000-0000-000000000001");
 
@@ -188,6 +191,30 @@ public static class SeedData
                 Phone = "02-1234-5678",
                 Address = "台北市信義區示範路1號",
                 SettingsJson = """{"timezone":"Asia/Taipei","allowed_checkin_methods":["otp","qrcode","manual"]}""",
+                IsActive = true,
+                CreatedAt = SeedTime,
+                UpdatedAt = SeedTime
+            });
+            changed = true;
+        }
+
+        // ── Demo 共用 user（對應 Controller 寫死的 CurrentUserId，避免 FK 錯誤）──
+        if (!context.Users.Any(u => u.Id == DemoUserId))
+        {
+            // 先 flush 前面的 insert（Clinic），避免 User FK 看不到 Clinic
+            if (changed)
+            {
+                await context.SaveChangesAsync();
+                changed = false;
+            }
+
+            context.Users.Add(new User
+            {
+                Id = DemoUserId,
+                ClinicId = ClinicId,
+                Email = "demo@clinic.local",
+                PasswordHash = "seed-demo-no-login",
+                DisplayName = "示範人員",
                 IsActive = true,
                 CreatedAt = SeedTime,
                 UpdatedAt = SeedTime
