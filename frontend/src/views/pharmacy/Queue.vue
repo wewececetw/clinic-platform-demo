@@ -51,7 +51,6 @@ interface PharmacyItem {
   status: string
 }
 
-const CLINIC_ID = '10000000-0000-0000-0000-000000000001'
 const queue = ref<PharmacyItem[]>([])
 const loading = ref(true)
 const processing = ref<string | null>(null)
@@ -67,11 +66,20 @@ function statusLabel(status: string): string {
   return map[status] || status
 }
 
+// Demo mock 資料
+const MOCK_PHARMACY: PharmacyItem[] = [
+  { prescriptionId: 'rx1', visitId: 'v1', patientName: '王大明', status: 'Dispensing' },
+  { prescriptionId: 'rx2', visitId: 'v2', patientName: '李小華', status: 'Pending' },
+  { prescriptionId: 'rx3', visitId: 'v3', patientName: '張美玲', status: 'Pending' },
+  { prescriptionId: 'rx4', visitId: 'v6', patientName: '黃志豪', status: 'Completed' },
+]
+
 async function loadQueue() {
   try {
-    queue.value = await getPharmacyQueue(CLINIC_ID)
+    const data = await getPharmacyQueue()
+    queue.value = data.length > 0 ? data : MOCK_PHARMACY
   } catch (e: any) {
-    console.error('載入配藥佇列失敗', e)
+    queue.value = MOCK_PHARMACY
   } finally {
     loading.value = false
   }
@@ -80,7 +88,7 @@ async function loadQueue() {
 async function handleStartDispense(prescriptionId: string) {
   processing.value = prescriptionId
   try {
-    await startDispense(CLINIC_ID, prescriptionId)
+    await startDispense(prescriptionId)
     await loadQueue()
   } catch (e: any) {
     alert(`開始配藥失敗：${e.message}`)
@@ -92,7 +100,7 @@ async function handleStartDispense(prescriptionId: string) {
 async function handleCompleteDispense(prescriptionId: string) {
   processing.value = prescriptionId
   try {
-    await completeDispense(CLINIC_ID, prescriptionId)
+    await completeDispense(prescriptionId)
     await loadQueue()
   } catch (e: any) {
     alert(`配藥完成失敗：${e.message}`)
