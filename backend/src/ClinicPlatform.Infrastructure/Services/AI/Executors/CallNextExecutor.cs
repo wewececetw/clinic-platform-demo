@@ -10,7 +10,9 @@ public class CallNextExecutor(IQueueService queueService) : ICommandExecutor
 
     public async Task<CommandExecutionResult> ExecuteAsync(CommandContext context)
     {
-        var queueType = context.Params?.GetValueOrDefault("queueType")?.ToString() ?? "waiting";
+        // LLM 常回「waiting」（語意佇列名），需映射到 QueueType enum 的 Consulting
+        var raw = context.Params?.GetValueOrDefault("queueType")?.ToString() ?? "Consulting";
+        var queueType = raw.Equals("waiting", StringComparison.OrdinalIgnoreCase) ? "Consulting" : raw;
         var request = new CallNextRequest(context.ClinicId, queueType, null);
         var result = await queueService.CallNextAsync(request, context.UserId);
 
