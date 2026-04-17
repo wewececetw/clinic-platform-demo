@@ -96,7 +96,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { getQueue, startConsult, completeConsult, createPrescription } from '@/api/client'
+import { getDoctorQueue, startConsult, completeConsult, createPrescription } from '@/api/client'
 import CommandInput from '@/components/CommandInput.vue'
 
 const CLINIC_ID = '10000000-0000-0000-0000-000000000001'
@@ -131,9 +131,8 @@ let timer: ReturnType<typeof setInterval> | null = null
 
 async function loadCurrentPatient() {
   try {
-    const queue = await getQueue(CLINIC_ID, 'Consulting')
-    const called = queue.find((q) => q.status === 'Called')
-    currentPatient.value = called || null
+    const queue = await getDoctorQueue(CLINIC_ID)
+    currentPatient.value = queue[0] || null
   } catch (e: any) {
     console.error('載入病患失敗', e)
   } finally {

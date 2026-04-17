@@ -57,6 +57,11 @@ export const getQueue = (clinicId: string, queueType: string) =>
   get<Array<{ visitId: string; queueNumber: number; patientName: string; priority: number; status: string }>>(
     `/queue/${clinicId}?type=${queueType}`)
 
+// 醫師頁專用：撈已被叫到（Called 狀態）的病患
+export const getDoctorQueue = (clinicId: string) =>
+  get<Array<{ visitId: string; queueNumber: number; patientName: string; priority: number; status: string }>>(
+    `/doctor/queue?clinicId=${clinicId}`)
+
 export const callNext = (clinicId: string, queueType: string, roomId?: string) =>
   post('/queue/call-next', { clinicId, queueType, roomId })
 

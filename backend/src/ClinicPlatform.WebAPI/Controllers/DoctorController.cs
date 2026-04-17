@@ -25,7 +25,8 @@ public class DoctorController : ControllerBase
     [HttpGet("queue")]
     public async Task<IActionResult> GetDoctorQueue([FromQuery] Guid clinicId)
     {
-        var result = await _queueService.GetQueueAsync(clinicId, "Consulting");
+        // 醫師頁需看到已被叫號（Called）等待開始看診的病患
+        var result = await _queueService.GetCalledAsync(clinicId, "Consulting");
         return result.Success ? Ok(result.Data) : BadRequest(result.Error);
     }
 

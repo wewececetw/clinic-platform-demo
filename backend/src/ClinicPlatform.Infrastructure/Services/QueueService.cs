@@ -35,6 +35,30 @@ public class QueueService(ClinicDbContext db, INotificationPublisher notifier) :
         return Result<List<QueueEntryDto>>.Ok(entries);
     }
 
+    public async Task<Result<List<QueueEntryDto>>> GetCalledAsync(Guid clinicId, string queueType)
+    {
+        if (!Enum.TryParse<QueueType>(queueType, ignoreCase: true, out var parsedType))
+            return Result<List<QueueEntryDto>>.Fail("無效的佇列類型");
+
+        var entries = await db.QueueEntries
+            .Include(q => q.Visit)
+                .ThenInclude(v => v.Patient)
+            .Where(q => q.ClinicId == clinicId
+                && q.QueueType == parsedType
+                && q.Status == QueueEntryStatus.Called)
+            .OrderBy(q => q.CalledAt)
+            .Select(q => new QueueEntryDto(
+                q.VisitId,
+                q.QueueNumber,
+                q.Visit.Patient.FullName ?? "匿名",
+                q.Priority,
+                q.Status.ToString(),
+                q.Visit.CheckedInAt))
+            .ToListAsync();
+
+        return Result<List<QueueEntryDto>>.Ok(entries);
+    }
+
     public async Task<Result<QueuePositionDto>> GetPositionAsync(Guid clinicId, Guid visitId)
     {
         var entry = await db.QueueEntries
